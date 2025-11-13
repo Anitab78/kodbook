@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>KodBook Home</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/profile.css}">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <nav>
+        <span th:text="${session.username}"></span>
+        <a href="/goHome"><i class="fas fa-home"></i> News feed</a>
+        <a href="/openCreatePost"><i class="fas fa-plus-circle"></i> Create post</a>
+        <a href="/openMyProfile"><i class="fas fa-user-circle"></i> My profile</a>
+        <a href="/logout"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+    </nav>
+
+    <div class="posts-container">
+        <span th:each="post : ${allPosts}">
+            <div class="post-card">
+                <!-- Header: only if post.user exists -->
+                <div class="post-header" th:if="${post.user != null}">
+                    <div class="profile-pic"
+                         th:if="${post.user?.profilePicBase64 != null}">
+                        <img th:src="'data:image/jpeg;base64,' + ${post.user.profilePicBase64}"
+                             alt="User Photo"/>
+                    </div>
+                    <form action="/visitProfile" method="post">
+                        <span class="username"
+                              th:text="${post.user?.username ?: 'Unknown'}">
+                            Unknown
+                        </span>
+                        <input type="hidden" name="profileName"
+                               th:value="${post.user?.username}"/>
+                        <input type="submit" value="Visit profile"/>
+                    </form>
+                </div>
+
+                <!-- FALLBACK if somehow post.user is missing -->
+                <div class="post-header" th:if="${post.user == null}">
+                    <span class="username">[Deleted User]</span>
+                </div>
+
+                <!-- Post Content -->
+                <div class="post-content">
+                    <!-- IMAGE -->
+                    <div th:if="${post.postType.name() == 'IMAGE'}">
+                        <img th:if="${post.photoBase64 != null}"
+                             th:src="'data:image/jpeg;base64,' + ${post.photoBase64}"
+                             alt="Post Photo" />
+                    </div>
+
+                    <!-- VIDEO -->
+                    <div th:if="${post.postType.name() == 'VIDEO'}"
+                         >
+                         
+                         <iframe  height="315" 
+                         th:src="${post.videoUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                         
+                        
+                    </div>
+                </div>
+
+                <!-- Caption -->
+                <p class="caption">
+                    <span th:text="${post.caption}"></span>
+                </p>
+
+                <!-- Likes -->
+                <p class="likes">
+                    <strong>Likes:</strong>
+                    <span th:text="${post.likes}"></span>
+                </p>
+
+                <!-- Actions -->
+                <div class="post-actions">
+                    <form action="/likePost"  method="post" class="like-form">
+                        <input type="hidden" name="id" th:value="${post.id}"/>
+                        <input type="submit" value="LIKE POST"/>
+                    </form>
+
+                    <form action="/addComment" method="post" class="comment-form">
+                        <input type="hidden" name="id" th:value="${post.id}"/>
+                        <textarea name="comment" placeholder="Add a comment..." required></textarea>
+                        <input type="submit" value="Comment"/>
+                    </form>
+
+                    <form action="/deletePost" method="post" class="delete-form">
+                        <input type="hidden" name="id" th:value="${post.id}"/>
+                        <button type="submit">Delete</button>
+                    </form>
+                </div>
+
+                <!-- Comments -->
+                <div class="comments-section">
+                    <h4>Comments:</h4>
+                    <ul>
+                        <li th:each="comment : ${post.comments}">
+                            <span th:text="${comment}"></span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </span>
+    </div>
+</body>
+</html>
